@@ -9,3 +9,4 @@ Goals
 - change contrast  
 - color settings  
 - drawing tools if possible  
+- improved gui design  

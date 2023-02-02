@@ -1,5 +1,5 @@
 # pic_editor
-image editing interface using cv2 and tkinter in python  
+image editing interface using cv2 and tkinter in python venv  
 WORK IN PROGRESS    
 this currently only changes image brightness  
 

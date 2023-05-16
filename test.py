@@ -1,4 +1,5 @@
 
+# THIS IS FOR TESTING FUNCTIONS
 import cv2
 
 def BrightnessContrast(brightness=0):

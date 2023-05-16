@@ -4,8 +4,10 @@ import numpy
 import os
 from PIL import ImageTk, Image
 import cv2
-MAXHEIGHT = 250
-MAXWIDTH = 250
+import numpy as np
+
+MAXHEIGHT = 400
+MAXWIDTH = 400
 # this is a space that tracks changes to image, this is so newly edited images
 # aren't overwritten from their original
 WORKINGIMG ="current/working.jpg"
@@ -26,17 +28,20 @@ def convertToTkImg(image:numpy.ndarray) -> ImageTk.PhotoImage:
 #   image_label is the visual image who's brightness will be adjusted and presented
 class ImageController:
     def __init__(self, root, imageNameVal, image_label):
-        # self.root = Tk()
-
-        # self.image = cv2.imread(imageNameVal.get())
         self.imageNameVal = imageNameVal
         self.image_label = image_label
         self.brightnessVal = IntVar(root,value=0)
         self.contrastVal = IntVar(root,value=0)
-        self.brightnessSlider = Scale(root,from_=-255,to=255,orient='horizontal', variable=self.brightnessVal, command=self.adjustController, length=200,label="Brightness",relief="groove")
-        self.contrastSlider = Scale(root,from_=-127,to=127,orient='horizontal', variable=self.contrastVal,command=self.adjustController,length=200,label="Contrast", relief="groove")
-        self.brightnessSlider.grid(row=0,column=0)
-        self.contrastSlider.grid(row=0,column=1)
+        self.blurVal = IntVar(root,value=0)
+        self.sharpnessVal=IntVar(root,value=0)
+        self.brightnessSlider = Scale(root,from_=-255,to=255,orient='horizontal', variable=self.brightnessVal, command=self.adjustController, length=200,label="Brightness",relief="raised", bg="grey")
+        self.contrastSlider = Scale(root,from_=-127,to=127,orient='horizontal', variable=self.contrastVal,command=self.adjustController,length=200,label="Contrast", relief="raised", bg="grey")
+        self.blurSlider = Scale(root,from_=0,to=100, orient='horizontal', variable=self.blurVal,command=self.adjustController,length=200,label="Blur", relief="raised",bg="grey",resolution=3)
+        self.sharpnessSlider = Scale(root,from_=0,to=100, orient='horizontal', variable=self.sharpnessVal,command=self.adjustController,length=200,label="Blur", relief="raised",bg="grey")
+        self.brightnessSlider.grid(row=0,column=0, padx=5,pady=5)
+        self.contrastSlider.grid(row=0,column=1, padx=5, pady=5)
+        self.blurSlider.grid(row=1,column=0,padx=5,pady=5)
+        self.sharpnessSlider.grid(row=1,column=1,padx=5,pady=5)
     def adjustController(self, *args):
         # image = self.image
         print(self.imageNameVal.get())
@@ -44,7 +49,8 @@ class ImageController:
         image = cv2.imread(imageNameVal.get())
         contrast = self.contrastVal.get()# Contrast control
         brightness = self.brightnessVal.get()# Brightness control
-
+        blur = self.blurVal.get()
+        sharpness = self.sharpnessVal.get()
         if brightness != 0:
             print("hi")
             if brightness > 0:
@@ -67,6 +73,11 @@ class ImageController:
             print(alpha)
             print(gamma)
             adjustedImage = cv2.addWeighted(adjustedImage,alpha,adjustedImage,0,gamma)
+        if blur != 0:
+            adjustedImage = cv2.medianBlur(adjustedImage,self.blurVal.get())
+        if sharpness != 0:
+            filter = np.array([[0,0,-1,0,0],[0,-1,5,-1,0],[0,0,-1,0,0]] * sharpness)
+            adjustedImage=cv2.filter2D(adjustedImage,-1,filter)
         tkinterImage = convertToTkImg(adjustedImage)
         self.image_label.config(image=tkinterImage)
         self.image_label.photo = tkinterImage
@@ -80,8 +91,9 @@ class ImageController:
 class imgEditor:
     def __init__(self):
         self.root = Tk()
-        self.root.geometry("700x500")
+        self.root.geometry("1000x700")
         self.root.title("My Image Editor")
+        self.root.config(background="dodgerblue4")
         self.initializeFrames()
         self.setUpImageSection()
         self.initializeControllers()
@@ -90,10 +102,10 @@ class imgEditor:
 
     def initializeFrames(self):
         root = self.root
-        self.mainFrame = Frame(root)
-        self.controllerFrame = Frame(root, bg="black", )
-        self.mainFrame.pack(fill=X, expand=True, )
-        self.controllerFrame.pack( pady=30)
+        self.mainFrame = Frame(root, bg="steelblue", highlightbackground="white", padx=20, highlightthickness=2)
+        self.controllerFrame = Frame(root, highlightbackground="white",bg="steelblue", highlightthickness=2, pady=5 )
+        self.mainFrame.pack( pady=15)
+        self.controllerFrame.pack(pady=20 )
 
     def setUpImageSection(self,*args):
         mainFrame = self.mainFrame
@@ -101,21 +113,21 @@ class imgEditor:
         self.imageNameVal.set(TEMPLATEIMG)
         self.image = Image.open(self.imageNameVal.get())
         img = ImageTk.PhotoImage(self.image.resize((MAXHEIGHT,MAXWIDTH)))
-        self.image_label = Label(mainFrame, image=img,borderwidth=0)
-        self.text_label = Label(mainFrame, text=self.imageNameVal.get())
-        self.text_label.pack(pady= 10)
+        self.image_label = Label(mainFrame, image=img, bg="steelblue")
+        self.text_label = Label(mainFrame, text=self.imageNameVal.get(), bg="steelblue",fg="black")
+        self.text_label.pack(pady= 10, )
         self.image_label.image = img
         self.image_label.pack(expand=True, pady=15)
     def initializeControllers(self,*args):
         self.imageController = ImageController(self.controllerFrame,self.imageNameVal, self.image_label)
 
     def setupImageButtons(self,*args):
-        imageButtonFrame = Frame(self.mainFrame)
+        imageButtonFrame = Frame(self.mainFrame, bg="steelblue", padx=5, pady=5, highlightbackground="white", highlightthickness=2,relief="groove")
         # imageButtonFrame.grid()
         imageButtonFrame.pack(expand=True,pady=15,side=TOP)
-        self.loadImgButton = Button(imageButtonFrame, text="Load", command=self.loadImg, padx=20, bg="black",fg="white")
+        self.loadImgButton = Button(imageButtonFrame, text="Load", command=self.loadImg, padx=20, bg="grey",fg="black")
         self.loadImgButton.grid(row=0, column=0, padx=10)
-        self.saveImgButton = Button(imageButtonFrame,text="Save", command=self.saveImg,padx=20, bg="black", fg="white")
+        self.saveImgButton = Button(imageButtonFrame,text="Save", command=self.saveImg,padx=20, bg="grey", fg="black")
         self.saveImgButton.grid(row=0,column=1, padx=10)
 
     def loadImg(self, *args):

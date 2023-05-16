@@ -11,4 +11,4 @@ Goals
 - drawing tools if possible  
 - improved gui design  
 
-![image](https://user-images.githubusercontent.com/43590688/217809553-aa8dc015-89ce-406c-a043-7476ddf5bc1e.png)
+![image](https://github.com/jerusalemmoore/pic_editor/assets/43590688/0ebb826e-b2cd-44ad-bd39-02e6ac7194c5)
